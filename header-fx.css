@@ -1,0 +1,165 @@
+/* ShatUp premium animated header layer.
+   Pure CSS (transform / opacity only) — no extra JS libraries, no layout thrash.
+   Imported by app/page.tsx next to premium.css. Uses the site's own brand tokens. */
+
+:root {
+  --hx-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --hx-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --hx-brand: 255, 106, 26; /* = tailwind "emerald" brand token; change here to re-theme glows */
+}
+
+/* ---- 1. logo entrance: slide + fade + settle, then one light sweep ---- */
+@keyframes hxLogoIn {
+  0% { opacity: 0; transform: translate3d(-14px, 0, 0) scale(0.86); filter: blur(4px); }
+  60% { opacity: 1; filter: blur(0); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+.hx-logo { animation: hxLogoIn 0.8s var(--hx-ease) 0.1s both; transform-origin: left center; }
+.hx-logo-wrap { position: relative; display: inline-block; transition: transform 0.35s var(--hx-ease), filter 0.35s ease; }
+@media (hover: hover) {
+  .hx-logo:hover .hx-logo-wrap { transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(var(--hx-brand), 0.45)); }
+}
+.hx-logo-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -2px 0;
+  width: 35%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  mix-blend-mode: soft-light;
+  transform: translateX(-140%) skewX(-18deg);
+  animation: hxSweep 1.4s ease-in-out 1s 1 both;
+  pointer-events: none;
+}
+@keyframes hxSweep { to { transform: translateX(380%) skewX(-18deg); } }
+
+/* ---- header container: sticky shrink on scroll ---- */
+.hx-bar { transition: padding 0.35s var(--hx-ease); }
+.hx-header { transition: box-shadow 0.35s ease, border-color 0.35s ease, background-color 0.35s ease; }
+.hx-header[data-scrolled="true"] .hx-bar { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+.hx-header[data-scrolled="true"] .hx-logo-wrap { transform: scale(0.92); transform-origin: left center; }
+.hx-header[data-scrolled="true"] .hx-logo:hover .hx-logo-wrap { transform: scale(0.96); }
+@keyframes hxDrop { from { transform: translate3d(0, -100%, 0); } to { transform: none; } }
+.hx-header { animation: hxDrop 0.6s var(--hx-ease) both; }
+
+/* staggered fade-in for the right-hand icon cluster */
+@keyframes hxRise { from { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.9); } to { opacity: 1; transform: none; } }
+.hx-stagger > * { animation: hxRise 0.55s var(--hx-ease) both; }
+.hx-stagger > *:nth-child(1) { animation-delay: 0.15s; }
+.hx-stagger > *:nth-child(2) { animation-delay: 0.22s; }
+.hx-stagger > *:nth-child(3) { animation-delay: 0.29s; }
+.hx-stagger > *:nth-child(4) { animation-delay: 0.36s; }
+.hx-stagger > *:nth-child(5) { animation-delay: 0.43s; }
+.hx-stagger > *:nth-child(6) { animation-delay: 0.5s; }
+
+/* ---- 2. search: smooth expand on focus, soft brand glow, fade/slide-in on phones ---- */
+.hx-nav { max-width: 40rem; overflow: hidden; white-space: nowrap; transition: max-width 0.5s var(--hx-ease), opacity 0.3s ease, margin 0.5s var(--hx-ease); }
+.hx-bar:has(.hx-search:focus-within) .hx-nav { max-width: 0; opacity: 0; margin-left: 0; pointer-events: none; }
+.hx-search { max-width: 22rem; transition: max-width 0.5s var(--hx-ease); }
+.hx-search:focus-within { max-width: 36rem; }
+@media (max-width: 1100px) { .hx-search:focus-within { max-width: 100%; } }
+.hx-search input { transition: border-color 0.25s ease, background-color 0.25s ease, box-shadow 0.35s ease; }
+.hx-search:focus-within input,
+.hx-search-m:focus-within input { box-shadow: 0 0 0 4px rgba(var(--hx-brand), 0.14), 0 10px 30px -12px rgba(var(--hx-brand), 0.55); }
+.hx-search svg { transition: color 0.25s ease, transform 0.35s var(--hx-spring); }
+.hx-search:focus-within svg,
+.hx-search-m:focus-within svg { color: rgb(var(--hx-brand)); transform: translateY(-50%) scale(1.15); }
+
+/* mobile search row: slides down + fades while the grid-rows collapse handles height */
+.hx-row > div > div { transition: opacity 0.35s ease, transform 0.45s var(--hx-ease); }
+.hx-row[aria-hidden="true"] > div > div { opacity: 0; transform: translate3d(24px, -6px, 0) scale(0.98); }
+.hx-row[aria-hidden="false"] > div > div { opacity: 1; transform: none; }
+
+/* ---- 3. announcement ticker (premium dark strip) ---- */
+.hx-ticker { position: relative; overflow: hidden; background: #120d0a; }
+.hx-ticker::before, .hx-ticker::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 36px; z-index: 1; pointer-events: none;
+}
+.hx-ticker::before { left: 0; background: linear-gradient(90deg, #120d0a, transparent); }
+.hx-ticker::after { right: 0; background: linear-gradient(270deg, #120d0a, transparent); }
+.hx-ticker .lux-marquee { animation-duration: 22s; }
+@media (hover: hover) { .hx-ticker:hover .lux-marquee { animation-play-state: paused; } }
+.hx-ticker-line { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 196, 0, 0.7), transparent); }
+.hx-ticker-item { animation: hxTickerFade 0.8s ease both; }
+@keyframes hxTickerFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* desktop (static centred row): gentle sequential glow so it still feels alive */
+@media (min-width: 640px) {
+  .hx-ticker-item .hx-ico { animation: hxIco 4.5s ease-in-out infinite; }
+  .hx-ticker-item:nth-child(2) .hx-ico { animation-delay: 1.5s; }
+  .hx-ticker-item:nth-child(3) .hx-ico { animation-delay: 3s; }
+}
+@keyframes hxIco { 0%, 70%, 100% { transform: scale(1); filter: none; } 80% { transform: scale(1.25); filter: drop-shadow(0 0 6px rgba(255, 196, 0, 0.9)); } }
+
+/* ---- 4. cart bounce (header icon, phone dock, badge) ---- */
+@keyframes hxCartBounce {
+  0% { transform: scale(1) translateY(0); }
+  25% { transform: scale(1.22) translateY(-5px) rotate(-8deg); }
+  50% { transform: scale(0.94) translateY(1px) rotate(5deg); }
+  75% { transform: scale(1.06) translateY(-1px); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes hxBadgePop {
+  0% { transform: scale(0.4); }
+  55% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+@keyframes hxCartGlow {
+  0% { box-shadow: 0 0 0 0 rgba(var(--hx-brand), 0.55); }
+  100% { box-shadow: 0 0 0 16px rgba(var(--hx-brand), 0); }
+}
+.hx-bump { animation: hxCartBounce 0.6s var(--hx-spring), hxCartGlow 0.7s ease-out; }
+.hx-badge-bump { animation: hxBadgePop 0.5s var(--hx-spring); }
+
+/* ---- 5. mobile navigation drawer ---- */
+.hx-burger { position: relative; width: 20px; height: 14px; display: block; }
+.hx-burger i { position: absolute; left: 0; height: 2px; width: 100%; border-radius: 2px; background: currentColor; transition: transform 0.4s var(--hx-ease), opacity 0.2s ease, width 0.3s var(--hx-ease); }
+.hx-burger i:nth-child(1) { top: 0; }
+.hx-burger i:nth-child(2) { top: 6px; width: 70%; }
+.hx-burger i:nth-child(3) { top: 12px; }
+.hx-burger[data-open="true"] i:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.hx-burger[data-open="true"] i:nth-child(2) { opacity: 0; transform: translateX(-8px); }
+.hx-burger[data-open="true"] i:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+@media (hover: hover) { .hx-burger-btn:hover .hx-burger i:nth-child(2) { width: 100%; } }
+
+.hx-overlay { position: fixed; inset: 0; z-index: 60; background: rgba(10, 8, 6, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; visibility: hidden; transition: opacity 0.35s ease, visibility 0s linear 0.35s; }
+.hx-overlay[data-open="true"] { opacity: 1; visibility: visible; transition-delay: 0s; }
+.hx-drawer { position: fixed; top: 0; bottom: 0; left: 0; z-index: 61; width: min(84vw, 340px); display: flex; flex-direction: column; background: #fff; box-shadow: 30px 0 60px -20px rgba(0, 0, 0, 0.4); transform: translate3d(-104%, 0, 0); visibility: hidden; transition: transform 0.45s var(--hx-ease), visibility 0s linear 0.45s; will-change: transform; }
+.dark .hx-drawer { background: #14110e; }
+.hx-drawer[data-open="true"] { transform: none; visibility: visible; transition-delay: 0s; }
+.hx-drawer-item { opacity: 0; transform: translate3d(-18px, 0, 0); }
+.hx-drawer[data-open="true"] .hx-drawer-item { animation: hxItemIn 0.5s var(--hx-ease) both; animation-delay: calc(0.12s + var(--i, 0) * 0.06s); }
+@keyframes hxItemIn { from { opacity: 0; transform: translate3d(-18px, 0, 0); } to { opacity: 1; transform: none; } }
+.hx-drawer-link { position: relative; overflow: hidden; }
+.hx-drawer-link::before { content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 3px; border-radius: 3px; background: rgb(var(--hx-brand)); transform: scaleY(0); transition: transform 0.3s var(--hx-ease); }
+.hx-drawer-link:active::before, .hx-drawer-link:hover::before { transform: scaleY(1); }
+
+/* ---- 7. glow + micro-interactions ---- */
+.hx-icon { transition: transform 0.25s var(--hx-spring), background-color 0.2s ease, box-shadow 0.3s ease; }
+@media (hover: hover) {
+  .hx-icon:hover { transform: translateY(-2px); box-shadow: 0 8px 22px -8px rgba(var(--hx-brand), 0.55); }
+}
+.hx-icon:active { transform: scale(0.9); }
+.hx-nav-link { position: relative; }
+.hx-nav-link::after { content: ""; position: absolute; left: 50%; right: 50%; bottom: 3px; height: 2px; border-radius: 2px; background: rgb(var(--hx-brand)); transition: left 0.35s var(--hx-ease), right 0.35s var(--hx-ease); }
+.hx-nav-link:hover::after { left: 16px; right: 16px; }
+@keyframes hxGlowRing { 0%, 100% { box-shadow: 0 0 0 0 rgba(var(--hx-brand), 0.0), 0 6px 16px -6px rgba(var(--hx-brand), 0.5); } 50% { box-shadow: 0 0 0 5px rgba(var(--hx-brand), 0.12), 0 8px 22px -4px rgba(var(--hx-brand), 0.7); } }
+.hx-glow { animation: hxGlowRing 3.2s ease-in-out infinite; }
+
+/* ---- 9. black header, AppleGadgets-style: logo row slides away on scroll ---- */
+/* on phones the logo row collapses (grid-rows) while the white search pill
+   stays pinned; scrolling back up returns the row. Desktop never collapses. */
+.hx-logo-row > div { transition: opacity 0.3s ease, transform 0.35s var(--hx-ease); }
+.hx-logo-row[aria-hidden="true"] > div { opacity: 0; transform: translate3d(0, -10px, 0); }
+
+/* ---- 8/11. responsive tweaks + reduced motion ---- */
+@media (max-width: 380px) { .hx-search { max-width: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hx-logo, .hx-header, .hx-stagger > *, .hx-logo-wrap::after, .hx-ticker-item, .hx-ticker-item .hx-ico,
+  .hx-bump, .hx-badge-bump, .hx-glow, .hx-drawer-item { animation: none !important; }
+  .hx-drawer-item { opacity: 1; transform: none; }
+  .hx-bar, .hx-nav, .hx-search, .hx-search input, .hx-search svg, .hx-row > div > div, .hx-logo-row > div, .hx-burger i, .hx-overlay, .hx-drawer, .hx-icon, .hx-nav-link::after, .hx-drawer-link::before, .hx-logo-wrap {
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+  }
+  .hx-ticker .lux-marquee { animation: none !important; width: auto; justify-content: center; }
+  .hx-ticker .lux-marquee-dup { display: none; }
+}

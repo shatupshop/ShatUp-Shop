@@ -1,0 +1,453 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+  /* Decorative layers (splash scale, smoke wisps, ticker track) stick out past
+     the viewport and would otherwise make mobile Chrome expand the layout
+     viewport (~53px too wide) — fixed elements like the search dropdown and
+     dialogs would then be cut off on the right. `clip` (not `hidden`) keeps
+     sticky positioning working. */
+  overflow-x: clip;
+}
+
+body {
+  @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-300;
+  overflow-x: clip;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ff6a1a66;
+  border-radius: 999px;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* subtle press feedback on every interactive control, site-wide */
+button,
+a {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.15s ease;
+}
+button:active,
+a:active {
+  transform: scale(0.96);
+}
+
+/* smooth category / carousel scrolling with snap */
+.snap-x-mandatory {
+  scroll-snap-type: x mandatory;
+}
+.snap-center {
+  scroll-snap-align: center;
+}
+
+/* gentle shimmer sweep, used on discount badges */
+.shimmer-badge {
+  background-image: linear-gradient(
+    110deg,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.55) 50%,
+    rgba(255, 255, 255, 0) 60%
+  );
+  background-size: 200% 100%;
+}
+
+/* ---- opening splash: solid orange field. The bag+S icon (it already has
+   little wheels drawn into the artwork) slides in from off-screen left with
+   a speed-trail behind it and settles with a soft bounce — like it has
+   crossed the screen and parked in place. The wordmark is now real text
+   (not baked into an image), so each letter can wave in and the whole mark
+   can glow — things a flat PNG can't do. Everything still fires off fixed
+   animation-delay values, no setInterval, so it can't stutter. ---- */
+.splash-bg {
+  background: linear-gradient(135deg, #ffc400 0%, #ff7900 48%, #e65300 100%);
+}
+
+.icon-wrap {
+  position: relative;
+  width: min(46vw, 176px);
+}
+.icon-mark {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 26px rgba(0, 0, 0, 0.28));
+  animation: bagSlideIn 950ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  will-change: opacity, transform;
+}
+@keyframes bagSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-220%) scale(0.82);
+  }
+  55% {
+    opacity: 1;
+    transform: translateX(6%) scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* speed-line trail streaking off the icon as it crosses the screen — reads
+   as motion/speed without needing to touch the wheels baked into the art */
+.speed-trail {
+  position: absolute;
+  top: 58%;
+  left: -6px;
+  z-index: 1;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 244, 214, 0) 0%, rgba(255, 244, 214, 0.85) 100%);
+  animation: trailStreak 950ms cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  will-change: opacity, transform;
+}
+@keyframes trailStreak {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px) scaleX(0.3);
+  }
+  35% {
+    opacity: 1;
+    transform: translateX(-10px) scaleX(1);
+  }
+  70% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(30px) scaleX(0.4);
+  }
+}
+
+/* shine sweep across the icon, clipped to its own shape via mask-image */
+.icon-shine {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background-image: linear-gradient(
+    115deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.95) 48%,
+    rgba(255, 224, 190, 1) 52%,
+    transparent 75%
+  );
+  background-size: 220% 100%;
+  background-position: -60% 0;
+  -webkit-mask-image: url("/logo-icon.png");
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-image: url("/logo-icon.png");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  opacity: 0;
+  animation: logoShineSweep 700ms cubic-bezier(0.4, 0, 0.2, 1) both;
+  will-change: background-position, opacity;
+}
+@keyframes logoShineSweep {
+  0% {
+    background-position: -60% 0;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    background-position: 160% 0;
+    opacity: 0;
+  }
+}
+
+/* wordmark: each letter waves in once (rise + settle), not a continuous
+   bounce — reveals with personality but still reads as premium, not toy-ish */
+.word-letter {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: letterWaveIn 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+@keyframes letterWaveIn {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-5px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.tagline-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: letterWaveIn 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* soft illuminated glow on the wordmark once it has fully waved in */
+.word-glow {
+  animation: wordGlow 2.4s ease-in-out infinite;
+}
+@keyframes wordGlow {
+  0%, 100% {
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    text-shadow: 0 0 22px rgba(255, 255, 255, 0.65), 0 0 40px rgba(255, 214, 170, 0.35);
+  }
+}
+
+@keyframes stageIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.splash-skip {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top, 0px));
+  right: 16px;
+  z-index: 10;
+  opacity: 0;
+  animation: skipIn 400ms ease-out both;
+}
+@keyframes skipIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* fog/dust motes drifting up behind the "Developed by Rimon" credit —
+   soft, blurred, warm-white — a gentle highlight rather than bright bubbles */
+.fog-field {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 260px;
+  height: 10px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.fog-mote {
+  position: absolute;
+  bottom: 0;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.4) 55%,
+    rgba(255, 255, 255, 0) 78%
+  );
+  filter: blur(1.4px);
+  opacity: 0;
+  animation-name: fogRise;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+@keyframes fogRise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.5);
+  }
+  15% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--fog-drift, 0px), -46px) scale(1.6);
+  }
+}
+
+/* the credit badge gets a slow, soft white glow so it reads as "highlighted"
+   against the orange field without needing bright color of its own */
+.credit-highlight {
+  position: relative;
+  animation: creditGlow 2.6s ease-in-out infinite;
+}
+@keyframes creditGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 18px rgba(255, 255, 255, 0.65);
+  }
+}
+
+/* ---- ambient "living" animations for the homepage (not just entrance/hover) ---- */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(8px, -14px);
+  }
+}
+.float-slow {
+  animation: floatSlow 7s ease-in-out infinite;
+}
+.float-slow-delayed {
+  animation: floatSlow 8s ease-in-out infinite;
+  animation-delay: -3s;
+}
+
+@keyframes balloonDrift {
+  0%, 100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-16px) rotate(3deg);
+  }
+}
+.balloon-drift {
+  animation: balloonDrift 6s ease-in-out infinite;
+}
+
+@keyframes bagSway {
+  0%, 100% {
+    transform: translateY(0) rotate(4deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-4deg);
+  }
+}
+.bag-sway {
+  animation: bagSway 5s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.twinkle {
+  animation: twinkle 2.8s ease-in-out infinite;
+}
+
+@keyframes iconBeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.18);
+  }
+}
+.icon-beat {
+  animation: iconBeat 1.6s ease-in-out infinite;
+}
+
+@keyframes chipGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 106, 26, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(255, 106, 26, 0);
+  }
+}
+.chip-glow {
+  animation: chipGlow 2s ease-in-out infinite;
+}
+
+/* honor the OS-level "reduce motion" setting for every continuous/ambient
+   animation on the site (the opening animation has its own explicit check) */
+@media (prefers-reduced-motion: reduce) {
+  .float-slow,
+  .float-slow-delayed,
+  .balloon-drift,
+  .bag-sway,
+  .twinkle,
+  .icon-beat,
+  .chip-glow,
+  .animate-pulseSoft,
+  .animate-glowPulse,
+  .animate-shimmer {
+    animation: none !important;
+  }
+}
+
+
+
+/* ShatUp Shop brand palette: vivid orange + sunny yellow, balanced with black and white. */
+:root {
+  --shop-orange: #ff7900;
+  --shop-orange-deep: #e65300;
+  --shop-yellow: #ffc400;
+  --shop-yellow-soft: #ffe066;
+  --shop-ink: #151515;
+  --shop-paper: #ffffff;
+  --shop-accent-gradient: linear-gradient(120deg, var(--shop-orange), var(--shop-yellow));
+}
+::selection {
+  color: var(--shop-ink);
+  background: var(--shop-yellow);
+}
+
+/* ---- accessibility: respect "reduce motion" on phones/computers that ask for it ---- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .lux-marquee { animation: none !important; }
+}
+
+/* floating WhatsApp button: soft pulse ring */
+.wa-float::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.55);
+  animation: waPulse 2.6s ease-out infinite;
+  pointer-events: none;
+}
+@keyframes waPulse {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.55); }
+  70%, 100% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
+}
